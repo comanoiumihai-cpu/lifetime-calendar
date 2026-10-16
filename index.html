@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Disponibilitate | Lifetime Photography</title>
+  <style>
+    :root{color-scheme:light;--ink:#292a29;--muted:#72736f;--line:#e9e5df;--paper:#fff;--wash:#faf8f5;--green:#296448;--green-bg:#e8f3ed;--red:#a43d41;--red-bg:#f9eaea;--grey:#9d9d99;--grey-bg:#f1f1ef;--gold:#8e7967}
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:transparent;font-family:Arial,Helvetica,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+    .calendar{width:100%;max-width:740px;margin:0 auto;border:1px solid var(--line);border-radius:18px;padding:clamp(18px,4vw,32px);background:var(--paper);box-shadow:0 8px 30px rgba(34,27,20,.035)}
+    .eyebrow{margin:0 0 8px;letter-spacing:.24em;text-transform:uppercase;font-weight:700;font-size:10px;color:var(--gold);text-align:center}
+    h1{font-family:Georgia,'Times New Roman',serif;font-weight:400;text-align:center;letter-spacing:-.015em;font-size:clamp(25px,4vw,34px);margin:0}
+    .intro{text-align:center;font-size:13px;color:var(--muted);line-height:1.6;margin:10px auto 24px;max-width:430px}
+    .demo{padding:11px 14px;margin:0 0 18px;border:1px solid #e0c99c;background:#fff8e8;border-radius:9px;color:#74582c;font-size:12px;line-height:1.5}
+    .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+    .month-title{text-align:center;font-weight:600;font-size:17px;letter-spacing:.015em;text-transform:capitalize}
+    .nav{width:40px;height:40px;border:1px solid var(--line);background:#fff;border-radius:9px;display:grid;place-items:center;font-size:26px;line-height:1;cursor:pointer;color:#333}
+    .nav:hover,.nav:focus-visible{background:var(--wash);border-color:#bcb4ab}
+    .grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:clamp(5px,1.1vw,10px)}
+    .weekday{text-align:center;font-size:11px;color:var(--muted);font-weight:700;padding:0 0 9px}
+    .day{appearance:none;min-height:clamp(45px,8vw,61px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px solid transparent;border-radius:10px;padding:6px 0;cursor:pointer;font-size:16px;font-family:inherit;font-weight:650;transition:transform .1s ease,box-shadow .1s ease}
+    .day small{font-size:9px;letter-spacing:.02em;font-weight:500}
+    .day.available{background:var(--green-bg);color:var(--green)}
+    .day.available:hover,.day.available:focus-visible{box-shadow:0 0 0 2px #6caa86;transform:translateY(-1px)}
+    .day.reserved{background:var(--red-bg);color:var(--red);cursor:not-allowed}
+    .day.past,.day.blocked{background:var(--grey-bg);color:var(--grey);cursor:not-allowed}
+    .day.today{outline:2px solid #ad9375;outline-offset:1px}
+    .empty{min-height:45px}
+    .legend{border-top:1px solid var(--line);margin-top:22px;padding-top:19px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:13px 21px;font-size:12px;color:#565754}
+    .legend-item{display:inline-flex;align-items:center;gap:7px}
+    .dot{width:12px;height:12px;display:inline-block;border-radius:4px}
+    .dot.green{background:var(--green-bg);border:1px solid #91b5a0}.dot.red{background:var(--red-bg);border:1px solid #d8a6a5}.dot.gray{background:var(--grey-bg);border:1px solid #cbcbc6}
+    .hint{font-size:12px;line-height:1.6;color:var(--muted);text-align:center;margin:17px auto 0;max-width:450px}
+    .selection{margin-top:19px;padding:17px;background:var(--wash);border:1px solid var(--line);border-radius:11px;display:none;text-align:center}
+    .selection.visible{display:block}.selection strong{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:21px;display:block;margin-bottom:5px}.selection p{margin:0 0 15px;font-size:12px;color:var(--muted)}
+    .contact{display:inline-flex;align-items:center;justify-content:center;min-height:42px;background:#273b30;color:white;text-decoration:none;padding:11px 18px;border-radius:8px;font-size:13px;font-weight:600}
+    .contact:hover,.contact:focus-visible{background:#152b20}
+    .footer{font-size:11px;text-align:center;color:#9b968e;margin:16px 0 0}
+    button:focus-visible,a:focus-visible{outline:2px solid #80664b;outline-offset:3px}
+    @media(max-width:420px){.calendar{padding:16px;border-radius:12px}.grid{gap:5px}.weekday{font-size:10px}.day{font-size:14px;min-height:44px}.day small{font-size:8px}.legend{gap:8px 13px;font-size:11px}}
+    @media(prefers-reduced-motion:reduce){.day{transition:none}}
+  </style>
+</head>
+<body>
+  <main class="calendar" aria-label="Calendar disponibilitate Lifetime Photography">
+    <p class="eyebrow">Lifetime Photography</p>
+    <h1>Calendar de disponibilitate</h1>
+    <p class="intro">Alege data evenimentului tau si verifica daca suntem disponibili.</p>
+    <div class="demo" id="demoWarning" hidden><strong>MOD DEMO.</strong> Zilele rosii sunt exemple fictive. Inainte de publicare, completeaza rezervarile reale si seteaza <code>demoMode: false</code> in fisier.</div>
+    <div class="toolbar">
+      <button type="button" class="nav" id="prev" aria-label="Luna anterioara">&#8249;</button>
+      <div class="month-title" id="monthHeading" aria-live="polite"></div>
+      <button type="button" class="nav" id="next" aria-label="Luna urmatoare">&#8250;</button>
+    </div>
+    <div class="grid" id="dayGrid" role="group" aria-label="Zilele lunii"></div>
+    <div class="legend">
+      <span class="legend-item"><i class="dot green" aria-hidden="true"></i> Disponibil</span>
+      <span class="legend-item"><i class="dot red" aria-hidden="true"></i> Rezervat</span>
+      <span class="legend-item"><i class="dot gray" aria-hidden="true"></i> Data trecuta / indisponibil</span>
+    </div>
+    <div class="selection" id="selection" aria-live="polite">
+      <strong id="selectedTitle"></strong>
+      <p>Trimite-ne un mesaj pentru confirmarea disponibilitatii si o oferta personalizata.</p>
+      <a id="whatsappLink" class="contact" target="_blank" rel="noopener noreferrer">Solicita oferta pe WhatsApp ↗</a>
+    </div>
+    <p class="hint">Zilele verzi indica disponibilitatea declarata in calendar. Rezervarea este confirmata doar dupa discutia cu noi.</p>
+    <p class="footer">Lifetime Photography &middot; Wedding Photo &amp; Film</p>
+  </main>
+  <script>
+    'use strict';
+    /* ==============================================================
+       CONFIGURARE: modifica doar zona de mai jos.
+       1. Completeaza zilele rezervate in "reservedDates", format AAAA-LL-ZZ.
+       2. Pune "demoMode: false" dupa inlocuirea datelor de exemplu.
+       3. "blockedDates" = concediu, zile in care nu poti prelua evenimente.
+       4. Numarul WhatsApp are format international, fara + si fara 0 initial.
+       IMPORTANT: Toate datele viitoare care NU sunt rezervate sau blocate
+       vor fi afisate automat cu VERDE. Verifica disponibilitatea reala.
+       ============================================================== */
+    const CONFIG = {
+      whatsappNumber: '40763350336',
+      demoMode: false,
+      reservedDates: [
+        // '2026-11-14',
+        // '2027-06-05',
+        // '2027-06-11', 
+        // '2027-06-12',
+        // '2027-07-24',
+        // '2027-08-07',
+        // '2027-05-14', 
+        // '2027-09-25',
+        // '2028-08-26',
+
+      ],
+      blockedDates: [
+        // 
+      ]
+    };
+    /* ==============================================================
+       Nu este necesar sa modifici codul de sub aceasta linie.
+       ============================================================== */
+    const months=['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
+    const longWeek=['Duminica','Luni','Marti','Miercuri','Joi','Vineri','Sambata'];
+    const dayLabels=['L','Ma','Mi','J','V','S','D'];
+    const today=new Date(); today.setHours(0,0,0,0);
+    const zero=n=>String(n).padStart(2,'0');
+    const fmt=d=>`${d.getFullYear()}-${zero(d.getMonth()+1)}-${zero(d.getDate())}`;
+    const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return fmt(x);};
+    const mockReserved=CONFIG.demoMode?[addDays(today,8),addDays(today,15)]:[];
+    const reserved=new Set([...CONFIG.reservedDates,...mockReserved]);
+    const blocked=new Set(CONFIG.blockedDates);
+    let viewYear=today.getFullYear(),viewMonth=today.getMonth();
+    const grid=document.getElementById('dayGrid');
+    const selection=document.getElementById('selection');
+    document.getElementById('demoWarning').hidden=!CONFIG.demoMode;
+    const fullDate=d=>`${longWeek[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    function render(){
+      document.getElementById('monthHeading').textContent=`${months[viewMonth]} ${viewYear}`;
+      document.getElementById('prev').disabled=viewYear===today.getFullYear()&&viewMonth===today.getMonth();
+      document.getElementById('prev').style.opacity=document.getElementById('prev').disabled?'0.3':'1';
+      grid.replaceChildren();selection.classList.remove('visible');
+      for(const label of dayLabels){const el=document.createElement('div');el.className='weekday';el.textContent=label;grid.append(el);}
+      const first=(new Date(viewYear,viewMonth,1).getDay()+6)%7;
+      const count=new Date(viewYear,viewMonth+1,0).getDate();
+      for(let i=0;i<first;i++){const el=document.createElement('div');el.className='empty';grid.append(el);}
+      for(let day=1;day<=count;day++){
+        const date=new Date(viewYear,viewMonth,day),key=fmt(date);
+        const state=date<today?'past':reserved.has(key)?'reserved':blocked.has(key)?'blocked':'available';
+        const button=document.createElement('button');button.type='button';button.className=`day ${state}${key===fmt(today)?' today':''}`;
+        button.setAttribute('aria-label',`${fullDate(date)}: ${state==='available'?'disponibil':state==='reserved'?'rezervat':'indisponibil'}`);
+        button.innerHTML=`<span>${day}</span><small>${state==='available'?'Liber':state==='reserved'?'Ocupat':state==='blocked'?'Inchis':''}</small>`;
+        if(state!=='available')button.disabled=true;
+        else button.addEventListener('click',()=>selectDate(date));
+        grid.append(button);
+      }
+    }
+    function selectDate(date){
+      const label=fullDate(date);document.getElementById('selectedTitle').textContent=label;
+      const message=`Buna ziua! Am vazut pe site-ul Lifetime Photography ca data de ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()} apare disponibila. As dori o oferta foto-video pentru evenimentul meu. Multumesc!`;
+      document.getElementById('whatsappLink').href=`https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(message)}`;
+      selection.classList.add('visible');
+    }
+    document.getElementById('prev').addEventListener('click',()=>{if(viewYear===today.getFullYear()&&viewMonth===today.getMonth())return;viewMonth--;if(viewMonth<0){viewMonth=11;viewYear--;}render();});
+    document.getElementById('next').addEventListener('click',()=>{viewMonth++;if(viewMonth>11){viewMonth=0;viewYear++;}render();});
+    render();
+  </script>
+</body>
+</html>
